@@ -120,7 +120,7 @@ def build_github_execution(
     remote_url: str,
     install_dir: Path,
     *,
-    tag: str = "v0.1.0",
+    tag: str = "v0.1.4",
     branch: str = "main",
     work_dir: Path | None = None,
 ) -> GitHubPublishExecution:
@@ -214,7 +214,7 @@ def run_github_publish(
     remote_url: str,
     install_dir: Path,
     *,
-    tag: str = "v0.1.0",
+    tag: str = "v0.1.4",
     branch: str = "main",
     work_dir: Path | None = None,
     execute: bool,
@@ -274,7 +274,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--remote-url", required=True, help="GitHub remote URL to publish to")
     parser.add_argument("--install-dir", type=Path, required=True, help="Temporary install verification target")
     parser.add_argument("--work-dir", type=Path, help="Temporary git worktree target; defaults to <source>/.tmp/github-worktree")
-    parser.add_argument("--tag", default="v0.1.0", help="Release tag to push and verify")
+    parser.add_argument("--tag", default="v0.1.4", help="Release tag to push and verify")
     parser.add_argument("--branch", default="main", help="Branch to push")
     parser.add_argument("--execute", action="store_true", help="Actually run public GitHub create/push/tag/install commands")
     return parser

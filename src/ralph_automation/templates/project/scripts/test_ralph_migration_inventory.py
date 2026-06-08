@@ -23,12 +23,12 @@ def test_product_paths_do_not_classify_as_core():
 
 
 def test_host_state_paths_do_not_classify_as_core():
-    assert _class("agents/lead_engineer/tasks/TASK-250-ralph-automation-github-sync.md") == "host-state"
+    assert _class("agents/lead_engineer/tasks/TASK-999-example-host-state.md") == "host-state"
     assert _class("agents/lead_engineer/AUDIT-LOG.md") == "host-state"
-    assert _class("agents/lead_engineer/CYCLE-091.md") == "host-state"
+    assert _class("agents/lead_engineer/CYCLE-999.md") == "host-state"
     assert _class("agents/runtime/events/collab-2026-06-07.jsonl") == "host-state"
     assert _class("agents/messages/inbox/MSG-20260607-000000-test.md") == "host-state"
-    assert _class("docs/superpowers/plans/2026-06-07-ralph-automation-github-sync.md") == "host-state"
+    assert _class("docs/superpowers/plans/example-host-plan.md") == "host-state"
     assert _class("ralph.yml") == "host-state"
 
 

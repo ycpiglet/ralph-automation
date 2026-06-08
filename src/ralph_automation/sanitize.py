@@ -69,6 +69,8 @@ HOST_HISTORY_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
     ("concrete-task-id", re.compile(r"\b(?:TASK|CYCLE|REVIEW)-\d{3,}\b")),
     ("concrete-audit-id", re.compile(r"\bAUDIT-\d{4}-\d{2}-\d{2}-\d{3}\b")),
     ("concrete-meeting-id", re.compile(r"\bMEETING-\d{4}-\d{2}-\d{2}-\d{3}\b")),
+    ("host-specific-project-history", re.compile(r"\b(?:TASK-250-ralph-automation-github-sync|CYCLE-091|2026-06-07-ralph-automation-github-sync)\b")),
+    ("host-specific-account-reference", re.compile(r"\b(?:ANTHROPIC_API_KEY_KETI|_KETI)\b")),
     ("product-specific-reference", re.compile(r"\b(?:TAG\s+Manual|tag[_-]?manual|Supabase|RLS)\b|public/index\.html|supabase/")),
 )
 

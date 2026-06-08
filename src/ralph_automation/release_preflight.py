@@ -231,7 +231,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--source", type=Path, default=Path.cwd(), help="Package source root")
     parser.add_argument("--host-root", type=Path, default=Path.cwd(), help="Host project root")
     parser.add_argument("--remote-url", required=True, help="GitHub remote URL to publish/install from")
-    parser.add_argument("--tag", default="v0.1.0", help="Release tag")
+    parser.add_argument("--tag", default="v0.1.4", help="Release tag")
     parser.add_argument("--bundle-dir", type=Path, default=Path(".tmp/public-source"), help="Temporary publish bundle dir")
     parser.add_argument("--tag-repo-dir", type=Path, default=Path(".tmp/tag-repo"), help="Temporary local tag repo dir")
     parser.add_argument("--tag-install-dir", type=Path, default=Path(".tmp/tag-install"), help="Temporary local tag install dir")

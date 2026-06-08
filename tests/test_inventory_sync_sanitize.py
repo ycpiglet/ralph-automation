@@ -5,6 +5,7 @@ import sys
 
 from pathlib import Path
 
+from ralph_automation import __version__
 from ralph_automation import cli as cli_module
 from ralph_automation.cli import main
 from ralph_automation.config import load_config
@@ -27,6 +28,10 @@ from ralph_automation.publish_tag_smoke import build_tag_smoke_plan
 from ralph_automation.sanitize import analyze as analyze_sanitize
 from ralph_automation.sync import _template_files
 from ralph_automation.sync import build_sync_plan
+
+CURRENT_RELEASE_VERSION = "0.1.4"
+CURRENT_RELEASE_TAG = f"v{CURRENT_RELEASE_VERSION}"
+PACKAGE_ROOT = Path(__file__).resolve().parents[1]
 
 
 def _write(path: Path, text: str = ""):
@@ -363,7 +368,7 @@ def test_lock_plan_tracks_host_upstream_version_and_template_digest(tmp_path):
     assert plan.record["upstream"]["package"] == "ralph-automation"
     assert plan.record["upstream"]["remote_url"] == "https://github.com/example/ralph-automation.git"
     assert plan.record["upstream"]["ref"] == "v0.1.0"
-    assert plan.record["installed"]["package_version"] == "0.1.0"
+    assert plan.record["installed"]["package_version"] == CURRENT_RELEASE_VERSION
     assert plan.record["installed"]["template_files"] == 2
     assert plan.record["installed"]["template_digest"].startswith("sha256:")
     assert plan.record["installed"]["managed_files"]["scripts/agent_worker.py"].startswith("sha256:")
@@ -889,6 +894,28 @@ def test_sanitize_blocks_host_history_references_in_nested_project_templates(tmp
     assert (template_doc.relative_to(source).as_posix(), "host-history-reference") in sanitize_findings
 
 
+def test_sanitize_blocks_host_specific_history_in_project_template_scripts(tmp_path):
+    source = tmp_path / "source"
+    _write_public_source(source)
+    template_script = source / "src" / "ralph_automation" / "templates" / "project" / "scripts" / "test_history.py"
+    _write(
+        template_script,
+        "\n".join(
+            [
+                'assert "agents/lead_engineer/tasks/TASK-250-ralph-automation-github-sync.md"',
+                'assert "agents/lead_engineer/CYCLE-091.md"',
+                'assert "docs/superpowers/plans/2026-06-07-ralph-automation-github-sync.md"',
+                'example = "ANTHROPIC_API_KEY_KETI"',
+            ]
+        )
+        + "\n",
+    )
+
+    sanitize_findings = {(finding.path, finding.kind) for finding in analyze_sanitize(source)}
+
+    assert (template_script.relative_to(source).as_posix(), "host-history-reference") in sanitize_findings
+
+
 def test_export_plan_selects_only_public_core_candidates(tmp_path):
     package_root = tmp_path / "packages" / "ralph-automation"
     _write(package_root / "templates" / "project" / ".gitkeep")
@@ -943,14 +970,25 @@ def test_publish_check_requires_public_github_source_contract(tmp_path):
 
 
 def test_github_workflow_runs_publish_gates_against_clean_bundle():
-    workflow = Path(".github/workflows/test.yml").read_text(encoding="utf-8")
+    workflow = (PACKAGE_ROOT / ".github" / "workflows" / "test.yml").read_text(encoding="utf-8")
 
     assert "publish-bundle --source . --dest .tmp/public-source --apply" in workflow
     assert "publish-github-plan --source .tmp/public-source" in workflow
     assert "release-preflight --source .tmp/public-source" in workflow
+    assert f"--tag {CURRENT_RELEASE_TAG}" in workflow
     assert "--host-root .tmp/public-source/tests/fixtures/host" in workflow
     assert "publish-github-plan --source . --remote-url" not in workflow
     assert "release-preflight --source . --host-root" not in workflow
+
+
+def test_release_metadata_and_cli_defaults_track_current_public_tag():
+    parser = cli_module.build_parser()
+
+    assert __version__ == CURRENT_RELEASE_VERSION
+    assert parser.parse_args(["publish-tag-smoke", "--repo-dir", "repo", "--install-dir", "install", "--check"]).tag == CURRENT_RELEASE_TAG
+    assert parser.parse_args(["publish-github-plan", "--remote-url", "https://github.com/example/ralph-automation.git", "--install-dir", "install", "--check"]).tag == CURRENT_RELEASE_TAG
+    assert parser.parse_args(["publish-github-execute", "--remote-url", "https://github.com/example/ralph-automation.git", "--install-dir", "install"]).tag == CURRENT_RELEASE_TAG
+    assert parser.parse_args(["release-preflight", "--remote-url", "https://github.com/example/ralph-automation.git", "--check"]).tag == CURRENT_RELEASE_TAG
 
 
 def test_publish_check_blocks_duplicate_top_level_templates_without_ignore(tmp_path):
@@ -1157,7 +1195,7 @@ def test_publish_github_plan_parses_ssh_remote_repository(tmp_path):
     plan = build_github_plan(source, "git@github.com:example/ralph-automation.git", install_dir)
 
     assert plan.repository == "example/ralph-automation"
-    assert plan.install_spec == "git+ssh://git@github.com/example/ralph-automation.git@v0.1.0"
+    assert plan.install_spec == f"git+ssh://git@github.com/example/ralph-automation.git@{CURRENT_RELEASE_TAG}"
 
 
 def test_publish_github_plan_reports_malformed_github_remote(tmp_path):

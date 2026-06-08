@@ -82,7 +82,7 @@
       "scripts/providers/_loop_guard.py": "sha256:7a7118af3fc3a45c9cb65d87cbfac81535dc73f1e237c0bfa9f053e56b59d5ac",
       "scripts/providers/agent_tools.py": "sha256:13045f85e50b6a1687725810e8ee50b85a2ee30a4651a5d4d3bc126a607581e9",
       "scripts/providers/base.py": "sha256:996ae8c88a2684088290e8dfa914fd219e16043f59a46d3df546a8f93213e38c",
-      "scripts/providers/claude.py": "sha256:15781a0c0ef4ca4b257858f4816b1d1425344e73556ed5133bb8af0c96f565c8",
+      "scripts/providers/claude.py": "sha256:92633b431f45becb476ebb27fb8b2cded7674b15370883b63d902ff9b6abdf27",
       "scripts/providers/claude_agent.py": "sha256:8c144f640a1d7edfbb9629c33328502991968979ea94aae077abfb742ce740f5",
       "scripts/providers/codex.py": "sha256:2f2c331c53f456e2ca8000da56b4a1348e57683613da22367dc6f7d074b50713",
       "scripts/providers/dummy.py": "sha256:8dfba37f1ac7886ad3de06a57a4725a05b6ed109a1137ed4682063c6a88f269f",
@@ -135,7 +135,7 @@
       "scripts/test_precommit_check.py": "sha256:f3cbd0c5008843b4794709172402ed984caccec5c0512f13aa58c8cd4bdecbb9",
       "scripts/test_prompt_clarity_hook.py": "sha256:15a381b0a950c3eb14c1bbeab78e67c38e6f24309a376a10abf08400f34439a9",
       "scripts/test_qa_negotiation.py": "sha256:8b5c5f2c8fca135ad798d4f13145fa6a7a5a0be7a3cf899e548b765fe7a6d156",
-      "scripts/test_ralph_migration_inventory.py": "sha256:60fba4437d66274953501b487c32c06b4e55691a1d0dbbabcd83d129b5bd2312",
+      "scripts/test_ralph_migration_inventory.py": "sha256:56966e812fa39714af03e7587b3a7619aed1a30fc8dd038cbb5ca3f0ee39a0f7",
       "scripts/test_role_mentions.py": "sha256:6bc73db1d241ae364229a91c8be2107af1b46e7175040df80d707c6e10a58dfe",
       "scripts/test_schedule.py": "sha256:2425bd05cc6ba328bc1fe84fc27a641f435acc1892c7c7e39ab0294b7eb89044",
       "scripts/test_schedule_task.py": "sha256:dfe7b94725df08da5bb05865b3861a26354d0533bdaac00f121aecb8bc45a1c1",
@@ -151,15 +151,15 @@
       "scripts/verify_sdk_backend.py": "sha256:d3b25541b8ea286ba630d4da1d01644b4e0da1d6b14ac1b193610e4d4e8d7e9f",
       "specs/agent_loop/ralph_compatibility.md": "sha256:f5e54aba1a95650c204f19b9f9cc8b99669d28c7217df329f1628091f2b7ccc6"
     },
-    "package_version": "0.1.0",
-    "template_digest": "sha256:d81f98e0e01432e86c9823b8824847bf58f44f6792d1740814178ef9338c6680",
+    "package_version": "0.1.4",
+    "template_digest": "sha256:16dfa59f96e65d6c698b429ce1867fb60df21eebcdb89991f9c7a3446ec737a8",
     "template_files": 149
   },
   "project": "fixture-host",
   "schema": "ralph-lock/v1",
   "upstream": {
     "package": "ralph-automation",
-    "ref": "v0.1.0",
+    "ref": "v0.1.4",
     "remote_url": "https://github.com/example/ralph-automation.git"
   }
 }

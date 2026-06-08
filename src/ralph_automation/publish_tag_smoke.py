@@ -178,7 +178,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--source", type=Path, default=Path.cwd(), help="Package source root")
     parser.add_argument("--repo-dir", type=Path, required=True, help="Temporary git repo directory")
     parser.add_argument("--install-dir", type=Path, required=True, help="Temporary pip target directory")
-    parser.add_argument("--tag", default="v0.1.0", help="Local tag to create and install from")
+    parser.add_argument("--tag", default="v0.1.4", help="Local tag to create and install from")
     mode = parser.add_mutually_exclusive_group(required=True)
     mode.add_argument("--check", action="store_true", help="Report smoke plan without writing")
     mode.add_argument("--apply", action="store_true", help="Create local tag and install from it")

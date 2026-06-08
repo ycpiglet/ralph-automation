@@ -134,7 +134,7 @@ Host projects pin the upstream dependency in `ralph.yml`:
 upstream:
   package: ralph-automation
   remote_url: https://github.com/example/ralph-automation.git
-  ref: v0.1.0
+  ref: v0.1.4
 ```
 
 Then run:
@@ -177,5 +177,5 @@ publish plan, host update plan, host upstream match, executable host update
 command shape, host sync conflict detection, and host lock freshness into one
 report. It does not replace `publish-tag-smoke --apply` or the real
 `publish-github-execute --execute` / workflow status evidence. Release tags such
-as `v0.1.0` are accepted for normal distribution; a 40-character commit SHA is
+as `v0.1.4` are accepted for normal distribution; a 40-character commit SHA is
 stricter if the host must be protected from force-moved tags.

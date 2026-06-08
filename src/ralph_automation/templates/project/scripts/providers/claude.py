@@ -87,7 +87,7 @@ def _ensure_anthropic_keys_loaded() -> None:
 def _anthropic_keys() -> list[str]:
     """API keys to try, in priority order, supporting multiple accounts:
     ANTHROPIC_API_KEY (primary), a comma-separated ANTHROPIC_API_KEYS, and any
-    ANTHROPIC_API_KEY_<suffix> — numbered (_2) OR named (_KETI, _PERSONAL).
+    ANTHROPIC_API_KEY_<suffix> — numbered (_2) OR named (_WORK, _PERSONAL).
     Deduped, empties dropped. Ordering after primary/list: numeric suffixes
     ascending, then named suffixes alphabetically (deterministic). Lets an
     operator drop in keys for several accounts under whatever names they like;
