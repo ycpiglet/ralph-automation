@@ -25,6 +25,7 @@ from ralph_automation.publish_github_execute import run_github_publish
 from ralph_automation.release_preflight import build_preflight_plan
 from ralph_automation.publish_tag_smoke import build_tag_smoke_plan
 from ralph_automation.sanitize import analyze as analyze_sanitize
+from ralph_automation.sync import _template_files
 from ralph_automation.sync import build_sync_plan
 
 
@@ -552,6 +553,16 @@ def test_sync_check_fails_when_conflicts_exist(tmp_path):
     _write(templates / "scripts" / "agent_worker.py", "print('upstream')\n")
 
     assert main(["sync", "--root", str(host), "--template-root", str(templates), "--check"]) == 1
+
+
+def test_template_files_use_stable_posix_relative_order(tmp_path):
+    _write(tmp_path / "AGENT_RUNTIME.md", "runtime\n")
+    _write(tmp_path / "AGENTS.md", "agents\n")
+    _write(tmp_path / "agents" / "alpha.md", "alpha\n")
+
+    files = [path.relative_to(tmp_path).as_posix() for path in _template_files(tmp_path)]
+
+    assert files == ["AGENT_RUNTIME.md", "AGENTS.md", "agents/alpha.md"]
 
 
 def test_update_plan_requires_upstream_contract(tmp_path):

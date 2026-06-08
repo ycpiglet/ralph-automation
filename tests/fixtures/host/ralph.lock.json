@@ -152,7 +152,7 @@
       "specs/agent_loop/ralph_compatibility.md": "sha256:f5e54aba1a95650c204f19b9f9cc8b99669d28c7217df329f1628091f2b7ccc6"
     },
     "package_version": "0.1.0",
-    "template_digest": "sha256:4193249014196c22f764e953c3a4be615555860e510f9e2512a55bc918a1ed64",
+    "template_digest": "sha256:d81f98e0e01432e86c9823b8824847bf58f44f6792d1740814178ef9338c6680",
     "template_files": 149
   },
   "project": "fixture-host",

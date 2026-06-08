@@ -38,7 +38,10 @@ def _is_runtime_artifact(path: Path) -> bool:
 def _template_files(template_root: Path) -> list[Path]:
     if not template_root.exists():
         return []
-    return sorted(path for path in template_root.rglob("*") if path.is_file() and not _is_runtime_artifact(path))
+    return sorted(
+        (path for path in template_root.rglob("*") if path.is_file() and not _is_runtime_artifact(path)),
+        key=lambda path: path.relative_to(template_root).as_posix().lower(),
+    )
 
 
 def _read(path: Path) -> str:
