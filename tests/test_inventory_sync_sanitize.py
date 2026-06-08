@@ -672,7 +672,8 @@ def test_release_preflight_resolves_relative_work_dirs_under_source_root(tmp_pat
     assert plan.findings_count == 0
     assert checks["publish-bundle"].status == "ok"
     assert checks["host-lock"].status == "ok"
-    assert checks["local-tag-smoke-plan"].detail.startswith(f"install_spec=git+file:///{source.as_posix()}/.tmp/tag-repo")
+    expected_tag_repo_uri = (source / ".tmp" / "tag-repo").resolve().as_uri()
+    assert checks["local-tag-smoke-plan"].detail == f"install_spec=git+{expected_tag_repo_uri}@v0.1.0"
 
 
 def test_release_preflight_blocks_host_sync_conflicts(tmp_path):
