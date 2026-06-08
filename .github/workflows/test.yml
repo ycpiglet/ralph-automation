@@ -35,4 +35,4 @@ jobs:
       - name: Check GitHub publish plan
         run: PYTHONPATH=src python -m ralph_automation.cli publish-github-plan --source .tmp/public-source --remote-url https://github.com/example/ralph-automation.git --install-dir .tmp/public-source/.tmp/github-install --check
       - name: Check release preflight
-        run: PYTHONPATH=src python -m ralph_automation.cli release-preflight --source .tmp/public-source --host-root tests/fixtures/host --remote-url https://github.com/example/ralph-automation.git --check
+        run: PYTHONPATH=.tmp/public-source/src python -m ralph_automation.cli release-preflight --source .tmp/public-source --host-root .tmp/public-source/tests/fixtures/host --remote-url https://github.com/example/ralph-automation.git --check

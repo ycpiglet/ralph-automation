@@ -638,6 +638,43 @@ def test_release_preflight_aggregates_public_and_host_readiness(tmp_path):
     assert checks["host-lock"].status == "ok"
 
 
+def test_release_preflight_resolves_relative_work_dirs_under_source_root(tmp_path, monkeypatch):
+    checkout = tmp_path / "checkout"
+    source = checkout / ".tmp" / "public-source"
+    host = source / "tests" / "fixtures" / "host"
+    _write_public_source(source)
+    _write_host_config(host, remote_url="https://github.com/example/ralph-automation.git")
+    assert main(
+        [
+            "lock",
+            "--root",
+            str(host),
+            "--template-root",
+            str(source / "src" / "ralph_automation" / "templates" / "project"),
+            "--write",
+        ]
+    ) == 0
+    monkeypatch.chdir(checkout)
+
+    plan = build_preflight_plan(
+        source_root=source,
+        host_root=host,
+        bundle_dir=Path(".tmp/public-source"),
+        tag_repo_dir=Path(".tmp/tag-repo"),
+        tag_install_dir=Path(".tmp/tag-install"),
+        github_install_dir=Path(".tmp/github-install"),
+        host_install_dir=Path(".tmp/ralph-upstream"),
+        remote_url="https://github.com/example/ralph-automation.git",
+        tag="v0.1.0",
+    )
+    checks = {check.name: check for check in plan.checks}
+
+    assert plan.findings_count == 0
+    assert checks["publish-bundle"].status == "ok"
+    assert checks["host-lock"].status == "ok"
+    assert checks["local-tag-smoke-plan"].detail.startswith(f"install_spec=git+file:///{source.as_posix()}/.tmp/tag-repo")
+
+
 def test_release_preflight_blocks_host_sync_conflicts(tmp_path):
     source = tmp_path / "source"
     host = tmp_path / "host"
@@ -899,6 +936,7 @@ def test_github_workflow_runs_publish_gates_against_clean_bundle():
     assert "publish-bundle --source . --dest .tmp/public-source --apply" in workflow
     assert "publish-github-plan --source .tmp/public-source" in workflow
     assert "release-preflight --source .tmp/public-source" in workflow
+    assert "--host-root .tmp/public-source/tests/fixtures/host" in workflow
     assert "publish-github-plan --source . --remote-url" not in workflow
     assert "release-preflight --source . --host-root" not in workflow
 

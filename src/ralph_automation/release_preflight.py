@@ -73,6 +73,10 @@ def _host_sync_findings(sync_plan) -> tuple[PublishFinding, ...]:
     )
 
 
+def _source_work_dir(source_root: Path, path: Path) -> Path:
+    return path if path.is_absolute() else source_root / path
+
+
 def build_preflight_plan(
     *,
     source_root: Path,
@@ -87,13 +91,16 @@ def build_preflight_plan(
 ) -> PreflightPlan:
     source = source_root.resolve()
     host = host_root.resolve()
+    resolved_bundle_dir = _source_work_dir(source, bundle_dir)
+    resolved_tag_repo_dir = _source_work_dir(source, tag_repo_dir)
+    resolved_tag_install_dir = _source_work_dir(source, tag_install_dir)
     resolved_host_install_dir = host_install_dir if host_install_dir.is_absolute() else host / host_install_dir
     resolved_github_install_dir = github_install_dir if github_install_dir.is_absolute() else source / github_install_dir
 
     sanitize_findings = tuple(analyze_sanitize(source))
     publish_findings = tuple(analyze_publish(source))
-    bundle_plan = build_bundle_plan(source, bundle_dir)
-    tag_plan = build_tag_smoke_plan(source, tag_repo_dir, tag_install_dir, tag)
+    bundle_plan = build_bundle_plan(source, resolved_bundle_dir)
+    tag_plan = build_tag_smoke_plan(source, resolved_tag_repo_dir, resolved_tag_install_dir, tag)
     github_plan = build_github_plan(source, remote_url, resolved_github_install_dir, tag=tag)
     update_plan = build_update_plan(host, resolved_host_install_dir)
     if update_plan.findings:
