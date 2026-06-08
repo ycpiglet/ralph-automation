@@ -1,0 +1,382 @@
+# Agent Role Registry (TASK-NNN)
+#
+# Canonical mapping of orchestrator role aliases to role profiles.
+# Read by scripts/agent_context_packet.py and scripts/agent_orchestrator.py.
+#
+# Schema per role:
+#   id              canonical role id (kebab-case)
+#   aliases         orchestrator command shortcuts (`/qa`, `/lead-engineer`)
+#   skill_file      authoritative SKILL.md path
+#   required_inputs documents the role MUST read on bootstrap
+#   forbidden_inputs documents the role MUST NOT read (independence/bias guard)
+#   output_contract what the role is expected to produce
+#   audit_gate      true if Independent Audit gate applies on completion
+#   default_subagents  Stage 7-A subagent roles to dispatch by default
+#                      (subset of scripts/subagent_dispatch.py SUBAGENT_ROLES:
+#                       implementer / reviewer / auditor / strategist / skeptic).
+#                      Worker role and subagent role are orthogonal — worker
+#                      describes pipeline stage responsibility, subagent
+#                      describes perspective responsibility. See TASK-NNN.
+#   notes           free-text caveats
+#
+# Constraints:
+# - dispatchable role ids match ROLE_ALIASES values in scripts/agent_orchestrator.py
+#   (Owner is a human registry role and is intentionally not dispatchable)
+# - skill_file must exist (validated by check_agent_docs.py)
+# - required_inputs entries must be repo-relative paths
+
+version: 1
+schema: agent-role-registry/v1
+updated_at: 2026-05-27T17:20:40+09:00
+
+roles:
+  - id: lead-engineer
+    aliases: [lead, lead-engineer]
+    skill_file: agents/lead_engineer/SKILL.md
+    required_inputs:
+      - AGENTS.md
+      - README.md
+      - agents/lead_engineer/STATUS.md
+      - agents/lead_engineer/AUDIT-LOG.md
+      - agents/lead_engineer/compound_log.md
+      - agents/lead_engineer/SKILL.md
+      - agents/lead_engineer/tasks/INDEX.md
+    forbidden_inputs: []
+    output_contract:
+      - "Plan / Review / Compound / RETRO 산출물"
+      - "TASK frontmatter + 본문 5W1H + Context Snapshot"
+      - "BRIEF/PLAN 응답은 reports/에 자동 보관"
+    audit_gate: true
+    default_subagents: [strategist, reviewer, auditor]
+    notes: |
+      Lead Engineer는 Plan/Review/Compound의 owner. 본인이 owner인 TASK의
+      self-review는 Independent Auditor가 same-session으로 검토하더라도
+      audit 섹션에 명시 필요.
+
+  - id: managing-partner
+    aliases: [manage, managing-partner, partner]
+    skill_file: agents/managing_partner/SKILL.md
+    required_inputs:
+      - AGENTS.md
+      - agents/lead_engineer/STATUS.md
+      - agents/managing_partner/INDEPENDENCE-RUBRIC.md
+      - agents/managing_partner/SKILL.md
+      - agents/lead_engineer/tasks/VIEW-by-workload.md
+      - agents/lead_engineer/tasks/VIEW-by-priority.md
+    forbidden_inputs:
+      - "본인 owner가 아닌 진행 중 TASK의 구현 디테일 (편향 방지)"
+    output_contract:
+      - "역할 독립성 평가 / 부담 분배 점검 / 비용·범위 결정"
+      - "Plan 단계 외부 관점 코멘트 (Bottom Line + Insight + Decision)"
+    audit_gate: true
+    notes: |
+      Managing Partner는 구현 owner가 기본 아님. 구현 TASK에 참여하려면
+      해당 TASK에서 명시적으로 owner/assignee로 지정 (AGENTS.md §3.1).
+
+  - id: independent-auditor
+    aliases: [audit, auditor, independent-auditor]
+    skill_file: agents/independent_auditor/SKILL.md
+    required_inputs:
+      - AGENTS.md
+      - agents/independent_auditor/AUDIT-GATE.md
+      - agents/independent_auditor/SAFETY-GATE.md
+      - agents/independent_auditor/SKILL.md
+      - agents/lead_engineer/AUDIT-LOG.md
+      - "관련 TASK diff (git diff)"
+      - "관련 TASK 검증 출력 (commands + outputs)"
+    forbidden_inputs:
+      - "구현자의 사유·결정 토론 (편향 방지) — 검토 시점에 owner와 같은 LLM 세션을 쓰는 경우 same-session 명시"
+      - "예측·추측·미래 계획 (감사는 현재 증거 기반)"
+    output_contract:
+      - "판정: 통과 / 보류 / 재검토 필요 (택1)"
+      - "보류·재검토 시 해소 조건 필수"
+      - "근거 5종 이상 (검증 가능성, 일관성, 정합성, 회귀 방지, self-review 명시)"
+    audit_gate: false
+    notes: |
+      Auditor는 audit_gate 적용 주체이지 대상 아님. owner와 같은 LLM
+      세션일 때는 §self-review 명시 필수.
+
+  - id: doc-steward
+    aliases: [doc, doc-steward, steward]
+    skill_file: agents/doc_steward/SKILL.md
+    required_inputs:
+      - AGENTS.md
+      - README.md
+      - agents/lead_engineer/STATUS.md
+      - agents/lead_engineer/AUDIT-LOG.md
+      - agents/roles.yml
+      - "latest agents/lead_engineer/CYCLE-*.md"
+      - "latest agents/lead_engineer/reviews/REVIEW-*.md"
+      - agents/lead_engineer/tasks/INDEX.md
+      - "관련 TASK/MEETING/REPORT/role docs"
+    forbidden_inputs:
+      - "감사 판정·증거 충분성 결정 (Independent Auditor 책임)"
+      - "제품 QA 검증·BUG 판정 (QA 책임)"
+      - "TASK owner/priority/cycle scope 결정 (Lead Engineer/Managing Partner 책임)"
+      - "제품 코드 구현"
+    output_contract:
+      - "Document Health Report (freshness/integrity/stale/missing/frontmatter/link findings)"
+      - "Doc Steward Check 결과와 권장 owner"
+      - "read-only validation 명령 출력 요약"
+    audit_gate: false
+    default_subagents: [reviewer]
+    notes: |
+      Doc Steward는 문서 정합성 관리자다. Independent Auditor, QA,
+      Timeline 역할, Lead Engineer, Managing Partner를 대체하지 않는다.
+      canonical source of truth는 기존 AGENTS/STATUS/CYCLE/REVIEW/TASK/AUDIT
+      체계를 그대로 따른다.
+
+  - id: scribe
+    aliases: [scribe, archivist]
+    skill_file: agents/scribe/SKILL.md
+    required_inputs:
+      - AGENTS.md
+      - agents/scribe/SKILL.md
+      - "Lead Engineer 또는 Doc Steward가 지정한 대상 문서"
+      - "보존해야 할 canonical source 링크"
+    forbidden_inputs:
+      - "PR review / code review / security review"
+      - "TASK assignment / owner 변경 / priority 변경"
+      - "감사 판정 또는 timeline reconstruction"
+      - "최신 hot 문서 강한 압축 (명시 지시 없을 때)"
+      - "제품 코드 구현"
+    output_contract:
+      - "Scribe Cleanup Note (scope/compression level/preserved refs/changed sections)"
+      - "작은 문서 정리 diff 또는 archive/compression 패치"
+    audit_gate: false
+    default_subagents: []
+    notes: |
+      Scribe는 정리·압축 worker다. canonical state가 이미 결정된 후에만
+      문서 노이즈를 줄인다. 의미 판단이 필요하면 Lead Engineer 또는
+      Doc Steward로 되돌린다.
+
+  - id: research
+    aliases: [research, research-agent, researcher]
+    skill_file: agents/research_agent/SKILL.md
+    required_inputs:
+      - "Lead Engineer / Lead Designer / CEO 가 지정한 조사 질문"
+      - "관련 TASK/MEETING/REVIEW 맥락"
+      - "공식 문서·표준·선행 사례 출처"
+    forbidden_inputs:
+      - "방향성·우선순위·스코프 최종 결정 (CEO/Lead Engineer/Managing Partner 책임)"
+      - "감사 판정 (Independent Auditor 책임)"
+      - "별도 Research Engineer/번역 역할 신설"
+      - "제품 코드 구현"
+    output_contract:
+      - "Evidence Note (질문/출처 링크/요약/적용 시사점/불확실성)"
+      - "결정이 아니라 결정 근거를 제공"
+    audit_gate: false
+    default_subagents: []
+    notes: |
+      Research Agent는 증거·레퍼런스 제공 역할이다. 공식 문서·선행 사례·
+      비교 패턴을 찾아 compact evidence note 로 제공하되 최종 결정은 하지
+      않는다. plan agent_role_refactor_plan.md §3.5 기준.
+
+  - id: timeline
+    aliases: [timeline, timeline-agent, chronology]
+    skill_file: agents/timeline_agent/SKILL.md
+    required_inputs:
+      - agents/lead_engineer/AUDIT-LOG.md
+      - agents/lead_engineer/tasks/INDEX.md
+      - "관련 CYCLE/MEETING/REVIEW 기록과 agents/messages 로그"
+    forbidden_inputs:
+      - "문서 압축·정리 (Scribe 책임)"
+      - "canonical 문서 확정 (Doc Steward/Lead Engineer 책임)"
+      - "TASK assignment / 우선순위 결정"
+      - "제품 코드 구현"
+    output_contract:
+      - "Timeline Reconstruction (시간순 이벤트 표 + 출처 ID + 모호 구간 표기)"
+      - "Doc Steward/Lead Engineer 에 chronology 입력 제공"
+    audit_gate: false
+    default_subagents: []
+    notes: |
+      Timeline Agent는 워크플로 연대기 전문 역할이다. CYCLE/TASK/MEETING/
+      AUDIT/message 순서를 재구성해 "무엇이 먼저였고 어디가 모호한지"를
+      설명한다. 문서를 압축하거나 canonical 을 결정하거나 작업을 분장하지
+      않는다. plan agent_role_refactor_plan.md §3.6 기준.
+
+  - id: backend
+    aliases: [backend, be]
+    skill_file: agents/backend_engineer/SKILL.md
+    required_inputs:
+      - AGENTS.md
+      - agents/backend_engineer/SKILL.md
+      - Managed database/schema.sql
+      - "관련 TASK 본문"
+    forbidden_inputs: []
+    output_contract:
+      - "Managed database migration / row-level policy 정책 / Edge Function 코드"
+      - "scripts/test_connect.py 통과 evidence"
+    audit_gate: true
+    default_subagents: [implementer, reviewer, skeptic]
+    notes: |
+      Auth/row-level policy/배포 변경은 audit gate 자동 적용.
+
+  - id: ci-cd
+    aliases: [ci-cd, cicd, ci]
+    skill_file: agents/cicd_engineer/SKILL.md
+    required_inputs:
+      - AGENTS.md
+      - agents/cicd_engineer/SKILL.md
+      - .github/workflows/test.yml
+      - vercel.json
+      - "관련 TASK 본문"
+    forbidden_inputs: []
+    output_contract:
+      - "PR 생성·머지·롤백 / CI 워크플로 변경"
+      - "Vercel 배포 확인 evidence (scripts/check_deployment.py)"
+    audit_gate: false
+    default_subagents: [implementer, reviewer]
+    notes: |
+      배포·시크릿 관련 변경은 audit_gate true로 escalate.
+
+  - id: uiux
+    aliases: [uiux, ui, ux, frontend]
+    skill_file: agents/uiux_designer/SKILL.md
+    required_inputs:
+      - AGENTS.md
+      - agents/uiux_designer/SKILL.md
+      - public/app.html
+      - public/style.css
+      - public/i18n.js
+      - "관련 TASK 본문"
+    forbidden_inputs: []
+    output_contract:
+      - "프런트엔드 코드 / 접근성 / 반응형 / 브라우저 검증"
+      - "Playwright E2E 통과 evidence (scripts/test_e2e.py)"
+    audit_gate: false
+    default_subagents: [implementer, reviewer]
+    notes: |
+      XSS/세션/권한 관련 UI 변경은 audit_gate true로 escalate.
+
+  - id: qa
+    aliases: [qa, test]
+    skill_file: agents/qa/SKILL.md
+    required_inputs:
+      - AGENTS.md
+      - agents/qa/SKILL.md
+      - agents/qa/TEST-STRATEGY.md
+      - scripts/test_e2e.py
+      - "관련 TASK 본문"
+      - "관련 BTC-*.md (있으면)"
+    forbidden_inputs: []
+    output_contract:
+      - "BUG 리포트 / E2E 회귀 케이스 / 검증 결과"
+      - "BTC → BUG 변환 (Beta Tester 입력 시)"
+    audit_gate: false
+    default_subagents: [reviewer, auditor, skeptic]
+    notes: |
+      QA의 audit_gate는 대상 TASK의 priority 따라간다.
+
+  - id: beta-tester
+    aliases: [beta, beta-tester]
+    skill_file: agents/beta_tester/SKILL.md
+    required_inputs:
+      - AGENTS.md
+      - agents/beta_tester/SKILL.md
+      - agents/beta_tester/test_cases/INDEX.md
+      - public/app.html
+    forbidden_inputs:
+      - "기술 디테일·구현 추론 (사용자 관점 보존)"
+    output_contract:
+      - "BTC-NNN.md (사용자 관점 탐색 결과)"
+      - "재현 단계 + 환경 + 기대 vs 실제"
+    audit_gate: false
+    notes: |
+      Beta Tester는 기술 원인 분석을 하지 않는다. QA가 BUG로 변환.
+
+  - id: owner
+    aliases: [owner, user]
+    skill_file: agents/owner/SKILL.md
+    required_inputs:
+      - "CEO 에이전트의 에스컬레이션·최종 승인 요청"
+      - "Owner-facing BRIEF/PLAN (audience: Owner)"
+    forbidden_inputs: []
+    output_contract:
+      - "큰 방향 전환·역할/워크플로 변경의 최종 승인"
+      - "CEO가 에스컬레이션한 충돌·고위험 결정의 해소"
+      - "파일 삭제·롤백·force push 등 파괴적 작업 승인 또는 거부"
+    audit_gate: false
+    notes: |
+      Owner는 사람(사용자)이다. worker 가 아니며 orchestrator 가 자동 호출하지
+      않는다. CEO 에이전트가 routine 을 자율 처리하고, 고위험·큰 방향 결정만
+      Owner 에게 에스컬레이션한다. Owner 로 가는 보고는 최소화한다(나머지는
+      CEO 에이전트가 수신). audience: Owner 인 보고만 Owner 를 향한다.
+      일상적인 shell/python/git 조회·검증·비파괴 편집 판단은 CEO가 흡수한다.
+
+  - id: ceo
+    aliases: [ceo]
+    skill_file: agents/ceo/SKILL.md
+    required_inputs:
+      - agents/lead_engineer/STATUS.md
+      - "Lead Engineer 보고 (BRIEF/PLAN)"
+      - "최신 CYCLE/REVIEW"
+    forbidden_inputs:
+      - "구현 방법 지시 (무엇을/왜만 결정, 어떻게는 Lead Engineer)"
+      - "파일 삭제·롤백·force push 등 파괴적 작업을 Owner 승인 없이 허가"
+    output_contract:
+      - "목표·스코프·우선순위 자율 결정, Lead Engineer 지시, 팀 보고 수신"
+      - "고위험·큰 방향 결정만 Owner 에게 에스컬레이션"
+      - "routine 명령·검증·비용·리스크 판단을 흡수해 Owner 개입 최소화"
+    audit_gate: false
+    default_subagents: []
+    notes: |
+      CEO는 자율 조율 에이전트다(사람 아님). 목표·스코프·우선순위를 자율
+      판단하고 Lead Engineer 와 협의하며 팀 보고를 수신한다. Owner(사람)에게는
+      큰 방향 전환·역할/워크플로 변경·고위험·비용 초과 결정만 에스컬레이션해
+      Owner 보고를 줄인다. routine 보고의 기본 수신자는 CEO 다. routine
+      bash/python/git 조회·검증·비파괴 편집 판단은 CEO가 관리한다. 삭제·롤백·
+      force push·운영 DB·secret·production deploy·치명 결함은 Owner 에스컬레이션.
+      역할 본체는 agents/ceo/SKILL.md.
+
+  - id: secretary
+    aliases: [secretary, sec]
+    skill_file: agents/secretary/SKILL.md
+    required_inputs:
+      - agents/secretary/SKILL.md
+      - agents/lead_engineer/tasks/BACKLOG.md
+      - agents/lead_engineer/SCHEDULE.yml
+      - "최신 agents/lead_engineer/reports/ BRIEF/PLAN"
+      - agents/lead_engineer/AUDIT-LOG.md
+    forbidden_inputs:
+      - "우선순위·스코프·방향 최종 결정 (CEO/Lead Engineer/Managing Partner 책임)"
+      - "TASK 배정·상태 변경·생성 (Lead Engineer/query_tasks writer)"
+      - "감사 판정 (Independent Auditor 책임)"
+      - "제품/스크립트 구현"
+      - "파일 삭제·머지·배포 등 R2/R3 행위 (거버넌스 쓰기 금지)"
+      - "CEO 역할(회사 운영·팀 지시) 침범"
+    output_contract:
+      - "agents/owner/digest/DIGEST-{date}.md (Owner 데스크 요약)"
+      - "보고·상기·제안만 — 결정·배정·구현 안 함"
+    audit_gate: false
+    default_subagents: []
+    notes: |
+      Secretary 는 Owner 개인 비서(R1만)다. CEO(회사 운영·결정)와 다른 계층이며,
+      backlog_sweep.collect() + schedule.read_schedules() 를 재사용해 종합·보고·상기만
+      한다(제2 집계기 금지, 거버넌스 쓰기 금지). 본체는 agents/secretary/SKILL.md.
+
+  - id: requirements-interviewer
+    aliases: [interviewer, grill, deep-interview, requirements-interviewer]
+    skill_file: agents/requirements_interviewer/SKILL.md
+    required_inputs:
+      - "명확화할 사용자/CEO 원 요청 (원문 그대로)"
+      - "관련 TASK/MEETING/CYCLE 맥락 (있으면)"
+      - AGENTS.md
+    forbidden_inputs:
+      - "방향성·우선순위·스코프 최종 결정 (CEO/Lead Engineer 책임)"
+      - "제품 코드 구현 (worker 역할 책임)"
+      - "감사 판정 (Independent Auditor 책임)"
+      - "유도 질문(leading)·자기 제안 검증(pitch)·가정형(would you) 질문 (Mom Test 안티패턴)"
+    output_contract:
+      - "Clarified Spec record (INTERVIEW-*.md): 원 요청·발화된 모호성 신호·질문/답변·결정 트리·확정 스펙(완료 기준 포함)·잔여 가정"
+      - "결정이 아니라 결정-가능(decision-ready) 스펙을 Lead Engineer/CEO 에 제공"
+    audit_gate: false
+    default_subagents: []
+    notes: |
+      Requirements Interviewer 는 모호한 요청을 구조화 질문(스무고개/결정트리)
+      으로 파고들어 명확성을 높이고 모호성을 줄이는 명확화 게이트다.
+      scripts/ambiguity_scan.py(기계적 모호성 신호 스캔)를 INTAKE·매 답변 라운드에
+      돌리고, SKILL.md 의 질문 프로토콜(ladder-up→W6H 커버→정보이득 순 batch 질문→
+      정지 기준)로 사용자에게 batched 질문을 던진다. 최종 결정·우선순위·구현·감사는
+      하지 않는다(결정 근거만 제공). 근거: EVIDENCE-2026-06-03-001, COMPOUND-029
+      (증상 아닌 목표로 ladder-up). plan: CYCLE-NNN.

@@ -1,0 +1,13 @@
+# Python package build artifacts
+/build/
+/dist/
+/src/*.egg-info/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Local install/build probes
+/.tmp/
+
+# Legacy staging leftovers; canonical sync templates are package data.
+/templates/

@@ -1,0 +1,8 @@
+project: fixture-host
+upstream:
+  package: ralph-automation
+  remote_url: https://github.com/example/ralph-automation.git
+  ref: v0.1.0
+sync:
+  mode: check-diff-apply
+  allow_silent_overwrite: false
